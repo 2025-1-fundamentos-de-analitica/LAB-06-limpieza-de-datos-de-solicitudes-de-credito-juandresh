@@ -46,9 +46,9 @@ def limpiar_fecha(df, col):
 def limpiar_monto(df, col):
     df[col] = (
         df[col].astype(str)
-        .str.replace(r'[^0-9.,]', '', regex=True)  # conserva números, comas y puntos
-        .str.replace(',', '')                     # elimina las comas (miles)
-        .str.replace(r'\.00$', '', regex=True)    # elimina .00 si está al final
+        .str.replace(r'[^0-9.,]', '', regex=True) 
+        .str.replace(',', '') 
+        .str.replace(r'\.00$', '', regex=True)
         .astype(float)
         .astype(int)
     )

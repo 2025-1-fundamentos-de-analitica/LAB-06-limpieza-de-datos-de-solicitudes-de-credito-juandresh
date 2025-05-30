@@ -3,7 +3,6 @@ Escriba el codigo que ejecute la accion solicitada en la pregunta.
 """
 
 import pandas as pd
-from textblob import TextBlob
 from datetime import datetime
 import os
 
@@ -12,35 +11,14 @@ def limp_str_simp(df, col):
     df[col] = df[col].str.lower()
     return df
 
-def limp_str_comp(df, col):
-
-    df['raw_keyword'] = df[col].copy()
-
-    df['raw_keyword'] = (
-        df['raw_keyword']
+def limpieza_texto(df, col):
+    return (
+        df[col]
+        .astype(str)
         .str.lower()
-        .str.replace(r'[-._]', ' ', regex=True)
+        .str.replace(r'[-_]', ' ', regex=True)
         .str.strip()
-        .str.replace(r'\s+', ' ', regex=True)
     )
-
-    df['raw_keyword'] = df['raw_keyword'].str.replace(r'\bde\b', '', regex=True)
-    df['raw_keyword'] = df['raw_keyword'].str.replace(r'\s+', ' ', regex=True).str.strip()
-
-    df['key'] = df['raw_keyword'].apply(
-        lambda x: " ".join(sorted([word.lemmatize("v") for word in TextBlob(x).words]))
-    )
-
-    grupos = df.groupby("key")["raw_keyword"].apply(list).reset_index()
-    mapping = {}
-    for _, row in grupos.iterrows():
-        for palabra in row['raw_keyword']:
-            mapping[palabra] = row['raw_keyword'][0]
-
-    df[col] = df['raw_keyword'].map(mapping)
-    df.drop(columns=['raw_keyword', 'key'], inplace=True)
-
-    return df
 
 def parse_fecha(fecha):
     formatos = [
@@ -95,19 +73,17 @@ def pregunta_01():
     df.dropna(inplace=True)
     df.drop_duplicates(inplace=True)
 
-    limp_str_simp(df, 'sexo')
-    limp_str_simp(df, 'tipo_de_emprendimiento')
-    limp_str_comp(df, 'idea_negocio')
+    df['sexo'] = limpieza_texto(df, 'sexo')
+    df['tipo_de_emprendimiento'] = limpieza_texto(df, 'tipo_de_emprendimiento')
+    df['idea_negocio'] = limpieza_texto(df, 'idea_negocio')
+    df['línea_credito'] = limpieza_texto(df, 'línea_credito')
 
     df['barrio'] = df['barrio'].str.lower().replace(['-', '_'], ' ', regex=True) 
 
     df = limpiar_fecha(df, 'fecha_de_beneficio')
     df = limpiar_monto(df, 'monto_del_credito')
-    limp_str_comp(df, 'línea_credito')
 
     df.drop_duplicates(inplace=True)
     df.to_csv('files/output/solicitudes_de_credito.csv', index=False, sep=';')
 
-    return df.sexo.value_counts().to_list()
-
-print(pregunta_01())
+    return
